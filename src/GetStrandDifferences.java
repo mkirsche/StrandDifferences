@@ -60,6 +60,7 @@ public class GetStrandDifferences
 				else if(key.equals("context")) { contextLength = Integer.parseInt(val); }
 				else if(key.equals("maf_ratio")) { mafRatio = Double.parseDouble(val); }
 				else if(key.equals("min_maf")) { minMaf = Double.parseDouble(val); }
+				else if(key.equals("sample_name")) { sampleName = val; }
 			}
 		}
 		
