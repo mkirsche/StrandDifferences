@@ -16,6 +16,8 @@ public class GetStrandDifferences
 	static double mafRatio = 2.0;
 	static double minMaf = 0.15;
 	
+	static String sampleName = "";
+	
 	// These are used when incorporating gene annotations
 	static HashMap<String, String> genome;
 	
@@ -30,10 +32,11 @@ public class GetStrandDifferences
 		System.out.println("  genome_file  (String) - path to genome");
 		System.out.println();
 		System.out.println("Optional args:");
-		System.out.println("  min_depth (int)   [30]   - the minimum unambiguous depth that must be present on each strand for a position to be highlighted");
-		System.out.println("  context   (int)   [10]   - the number of bases to report on either side of highlighted sites");
-		System.out.println("  maf_ratio (float) [2.0]  - the minimum ratio of MAFs across strands needed to highlight a site");
-		System.out.println("  min_maf   (float) [0.15] - the minimum MAF on the more frequent strand needed to highlight a site");
+		System.out.println("  min_depth  (int)     [30]   - the minimum unambiguous depth that must be present on each strand for a position to be highlighted");
+		System.out.println("  context     (int)    [10]   - the number of bases to report on either side of highlighted sites");
+		System.out.println("  maf_ratio   (float)  [2.0]  - the minimum ratio of MAFs across strands needed to highlight a site");
+		System.out.println("  min_maf     (float)  [0.15] - the minimum MAF on the more frequent strand needed to highlight a site");
+		System.out.println("  sample_name (String) [\"\"]   - the sample name to be reported in its own column");
 		System.out.println();
 	}
 	
@@ -121,7 +124,8 @@ public class GetStrandDifferences
 	{
 		Mpileup mp = new Mpileup(mpileupFn);
 		PrintWriter out = new PrintWriter(new File(ofn));
-		out.println("CHR\tPOS\tREF\tPLUS_STRAND_FREQUENCIES\tMINUS_STRAND_FREQUENCIES\tPLUS_MAF\tMINUS_MAF\tREF_CONTEXT\tREF_CONTEXT_RC");
+		out.printf("CHR\tPOS\tREF\tPLUS_STRAND_FREQUENCIES\tMINUS_STRAND_FREQUENCIES\tPLUS_MAF\tMINUS_MAF\tREF_CONTEXT\tREF_CONTEXT_RC%s\n",
+				(sampleName.length() == 0 ? "" : ("\t" + sampleName)));
 		for(String chrName : mp.allFrequencies.keySet())
 		{
 			int[][][] counts = mp.allFrequencies.get(chrName);
@@ -179,10 +183,10 @@ public class GetStrandDifferences
 				if(higherMaf >= minMaf - 1e-9 && higherMaf >= lowerMaf * mafRatio - 1e-9)
 				{
 					System.out.println(higherMaf+" "+lowerMaf);
-					out.printf("%s\t%s\t%s\t%d,%d,%d,%d,%d\t%d,%d,%d,%d,%d\t%.3f\t%.3f\t%s\t%s\n", chrName, i+1, refChar, 
+					out.printf("%s\t%s\t%s\t%d,%d,%d,%d,%d\t%d,%d,%d,%d,%d\t%.3f\t%.3f\t%s\t%s%s\n", chrName, i+1, refChar, 
 							plusCounts[0], plusCounts[1], plusCounts[2], plusCounts[3], plusCounts[4],
 							minusCounts[0], minusCounts[1], minusCounts[2], minusCounts[3], minusCounts[4],
-							plusMaf, minusMaf, new String(context), new String(revComp));
+							plusMaf, minusMaf, new String(context), new String(revComp), (sampleName.length() == 0 ? "" : ("\t" + sampleName)));
 				}
 			}
 		}
