@@ -126,7 +126,7 @@ public class GetStrandDifferences
 		Mpileup mp = new Mpileup(mpileupFn);
 		PrintWriter out = new PrintWriter(new File(ofn));
 		out.printf("CHR\tPOS\tREF\tPLUS_STRAND_FREQUENCIES\tMINUS_STRAND_FREQUENCIES\tPLUS_MAF\tMINUS_MAF\tREF_CONTEXT\tREF_CONTEXT_RC%s\n",
-				(sampleName.length() == 0 ? "" : ("\t" + sampleName)));
+				(sampleName.length() == 0 ? "" : ("\t" + "SAMPLE")));
 		for(String chrName : mp.allFrequencies.keySet())
 		{
 			int[][][] counts = mp.allFrequencies.get(chrName);
