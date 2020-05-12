@@ -18,6 +18,8 @@ public class GetStrandDifferences
 	
 	static String sampleName = "";
 	
+	static String mode = "STRAND_DIFF";
+	
 	// These are used when incorporating gene annotations
 	static HashMap<String, String> genome;
 	
@@ -32,11 +34,14 @@ public class GetStrandDifferences
 		System.out.println("  genome_file  (String) - path to genome");
 		System.out.println();
 		System.out.println("Optional args:");
-		System.out.println("  min_depth  (int)     [30]   - the minimum unambiguous depth that must be present on each strand for a position to be highlighted");
-		System.out.println("  context     (int)    [10]   - the number of bases to report on either side of highlighted sites");
-		System.out.println("  maf_ratio   (float)  [2.0]  - the minimum ratio of MAFs across strands needed to highlight a site");
-		System.out.println("  min_maf     (float)  [0.15] - the minimum MAF on the more frequent strand needed to highlight a site");
-		System.out.println("  sample_name (String) [\"\"]   - the sample name to be reported in its own column");
+		System.out.println("  min_depth  (int)     [30]            - the minimum unambiguous depth that must be present on each strand for a position to be highlighted");
+		System.out.println("  context     (int)    [10]            - the number of bases to report on either side of highlighted sites");
+		System.out.println("  maf_ratio   (float)  [2.0]           - the minimum ratio of MAFs across strands needed to highlight a site");
+		System.out.println("  min_maf     (float)  [0.15]          - the minimum MAF on the more frequent strand needed to highlight a site");
+		System.out.println("  sample_name (String) [\"\"]          - the sample name to be reported in its own column");
+		System.out.println("  mode        (String) [STRAND_DIFF]   - one of {STRAND_DIFF, TRUE_VAR} indicating which sites to output");
+		System.out.println("    STRAND_DIFF: Sites where there is a large difference between strands");
+		System.out.println("    TRUE_VAR   : Sites where both strands indicate a variant");
 		System.out.println();
 	}
 	
@@ -56,11 +61,16 @@ public class GetStrandDifferences
 				if(key.equalsIgnoreCase("mpileup_file")) { mpileupFn = val; }
 				else if(key.equalsIgnoreCase("out_file")) { ofn = val; } 
 				else if(key.equalsIgnoreCase("genome_file")) { genomeFn = val; } 
-				else if(key.equals("min_depth")) { minDepth = Integer.parseInt(val); }
-				else if(key.equals("context")) { contextLength = Integer.parseInt(val); }
-				else if(key.equals("maf_ratio")) { mafRatio = Double.parseDouble(val); }
-				else if(key.equals("min_maf")) { minMaf = Double.parseDouble(val); }
-				else if(key.equals("sample_name")) { sampleName = val; }
+				else if(key.equalsIgnoreCase("min_depth")) { minDepth = Integer.parseInt(val); }
+				else if(key.equalsIgnoreCase("context")) { contextLength = Integer.parseInt(val); }
+				else if(key.equalsIgnoreCase("maf_ratio")) { mafRatio = Double.parseDouble(val); }
+				else if(key.equalsIgnoreCase("min_maf")) { minMaf = Double.parseDouble(val); }
+				else if(key.equalsIgnoreCase("sample_name")) { sampleName = val; }
+				else if(key.equalsIgnoreCase("mode"))
+				{
+					if(val.equalsIgnoreCase("strand_diff")) { mode = "STRAND_DIFF"; }
+					if(val.equalsIgnoreCase("true_var")) { mode = "TRUE_VAR"; }
+				}
 			}
 		}
 		
@@ -181,7 +191,18 @@ public class GetStrandDifferences
 					else revComp[j] = c;
 				}
 				
-				if(higherMaf >= minMaf - 1e-9 && higherMaf >= lowerMaf * mafRatio - 1e-9)
+				boolean print = false;
+				
+				if(mode.equals("STRAND_DIFF") && higherMaf >= minMaf - 1e-9 && higherMaf >= lowerMaf * mafRatio - 1e-9)
+				{
+					print = true;
+				}
+				else if(mode.equals("TRUE_VAR") && lowerMaf >= minMaf - 1e-9)
+				{
+					print = true;
+				}
+				
+				if(print)
 				{
 					System.out.println(higherMaf+" "+lowerMaf);
 					out.printf("%s\t%s\t%s\t%d,%d,%d,%d,%d\t%d,%d,%d,%d,%d\t%.3f\t%.3f\t%s\t%s%s\n", chrName, i+1, refChar, 
